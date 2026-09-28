@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>State Details | Bharat Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo"><span>🇮🇳</span> Bharat Explorer</div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="states.html">States</a>
+        <a href="index.html#about">About</a>
+    </div>
+</nav>
+
+<section class="state-hero" id="stateHero">
+    <div class="state-overlay"></div>
+    <div class="state-hero-content">
+        <a href="states.html" class="back-btn">← Back to States</a>
+        <p id="stateSymbol" class="big-symbol"></p>
+        <p class="section-tag">WELCOME TO</p>
+        <h1 id="stateName"></h1>
+        <p id="stateDescription"></p>
+    </div>
+</section>
+
+<section class="state-info">
+    <p class="section-tag">DISCOVER THE STATE</p>
+    <h2>Experience <span id="stateTitle"></span></h2>
+    <p class="state-intro">Explore the culture, festivals, food, places, art and special identity of this beautiful Indian state.</p>
+    <div class="category-grid" id="categoryGrid"></div>
+</section>
+
+<section class="quote-section">
+    <div>
+        <span>🇮🇳</span>
+        <h2>Unity in Diversity</h2>
+        <p>Every state has its own story, yet together they make India one of the most diverse countries in the world.</p>
+    </div>
+</section>
+
+<footer>
+    <h3>🇮🇳 Bharat Explorer</h3>
+    <p>Exploring the diversity and beauty of India.</p>
+    <p class="copyright">© 2026 Bharat Explorer | Web Technology Mini Project</p>
+</footer>
+
+<script src="states.js"></script>
+<script>
+
+/* ---------- Pick the state ---------- */
+const selectedState =
+    new URLSearchParams(location.search).get("state") ||
+    localStorage.getItem("selectedState");
+
+const state = states.find(s => s.name === selectedState);
+
+if (!state) {
+    window.location.href = "states.html";
+    throw new Error("No state selected");
+}
+
+document.title = state.name + " | Bharat Explorer";
+document.getElementById("stateName").textContent = state.name;
+document.getElementById("stateTitle").textContent = state.name;
+document.getElementById("stateSymbol").textContent = state.symbol;
+document.getElementById("stateDescription").textContent = state.description;
+document.getElementById("stateHero").style.backgroundImage = `url("${state.image}")`;
+
+/* ---------- Data ----------
+   Each state has 6 entries in this order:
+   Culture, Festival, Food, Places, Art & Craft, Speciality.
+   Entry format: "description | Wikipedia title | backup title | backup title"
+   The Wikipedia titles are used to fetch the card photo. */
+
+const CATEGORIES = ["Culture", "Festival", "Food", "Places", "Art & Craft", "Speciality"];
+
+const DATA = {
+
+"Andhra Pradesh": [
+ "Kuchipudi is a famous classical dance of Andhra Pradesh.|Kuchipudi|Perini Sivatandavam",
+ "Ugadi is the Telugu New Year, celebrated with rituals and special food.|Ugadi|Sankranti",
+ "Pulihora, Gongura dishes and spicy Andhra meals are popular.|Pulihora|Pesarattu",
+ "Visakhapatnam, Tirupati and Araku Valley are famous attractions.|Araku Valley|Borra Caves",
+ "Kalamkari is one of the best-known traditional arts of the state.|Kalamkari|Kondapalli Toys",
+ "Known for temples, beaches and rich Telugu culture.|Tirumala Venkateswara Temple|Tirupati"],
+
+"Arunachal Pradesh": [
+ "Home to many tribal communities with unique traditions.|Apatani people|Monpa",
+ "Losar and Solung are celebrated with great enthusiasm.|Solung|Mopin|Losar",
+ "Thukpa, momos and traditional tribal dishes are popular.|Thukpa|Momo (food)",
+ "Tawang, Ziro Valley and Sela Pass are famous destinations.|Sela Pass|Tawang",
+ "Bamboo and cane crafts and tribal weaving are part of local life.|Adi people|Nyishi people",
+ "Known as the Land of the Rising Sun in India.|Tawang Monastery|Ziro"],
+
+"Assam": [
+ "Sattriya dance and Assamese traditions shape Assam's culture.|Sattriya|Bihu dance",
+ "Bihu is the most famous festival of Assam.|Bihu|Rongali Bihu|Magh Bihu",
+ "Assamese cuisine includes Khar and Masor Tenga.|Assamese cuisine|Masor tenga",
+ "Kaziranga National Park and Majuli are famous attractions.|Kaziranga National Park|Majuli",
+ "Assam is famous for Muga silk and traditional weaving.|Muga silk|Eri silk",
+ "One of India's important tea-producing regions.|Assam tea|Kamakhya Temple"],
+
+"Bihar": [
+ "Bihar has a rich history tied to ancient Indian civilisation.|Bihar Museum|Vikramshila|Sonepur Mela",
+ "Chhath Puja is one of the most important festivals of Bihar.|Chhath|Sama Chakeva",
+ "Litti Chokha is one of the most famous foods of the state.|Litti chokha|Sattu|Litti",
+ "Bodh Gaya, Nalanda and Rajgir are important destinations.|Mahabodhi Temple|Vishnupad Temple",
+ "Madhubani painting is a famous traditional art form.|Madhubani art|Manjusha art|Sujani embroidery",
+ "Historically associated with Nalanda and Buddhism.|Nalanda|Rajgir|Vikramshila"],
+
+"Chhattisgarh": [
+ "Tribal traditions and folk performances are central to the state.|Raut Nacha|Muria people|Gond people",
+ "Bastar Dussehra is a major cultural celebration.|Bastar Dussehra|Goncha",
+ "Fara, Chila and Aamat are popular local dishes.|Chhattisgarhi cuisine|Chila",
+ "Chitrakote Falls and Bastar are famous destinations.|Chitrakote Falls|Tirathgarh Falls",
+ "Dhokra metal craft is a well-known traditional craft.|Dhokra",
+ "Known for forests, waterfalls and tribal heritage.|Indravati National Park|Bastar district|Bhoramdeo Temple"],
+
+"Goa": [
+ "Goan culture blends Indian traditions with Portuguese and coastal influences.|Goan culture|Goan folk dance|Mando (music)",
+ "Carnival, Shigmo and Christmas are widely celebrated.|Shigmo|Feast of St. Francis Xavier|Goa Carnival",
+ "Goan fish curry, Xacuti and Bebinca are popular.|Xacuti|Goan sausage|Feni",
+ "Baga Beach, Panaji and the Basilica of Bom Jesus attract visitors.|Anjuna|Dudhsagar Falls|Palolem Beach",
+ "Azulejo tiles and coconut and shell crafts are popular.|Azulejo|Goa Chitra Museum",
+ "Famous for beaches, Portuguese heritage and tourism.|Fort Aguada|Chapora Fort|Old Goa"],
+
+"Gujarat": [
+ "Colourful traditions and energetic folk dances define Gujarat.|Garba (dance)|Dandiya Raas",
+ "Navratri and its Garba celebrations are world famous.|Navaratri|Uttarayan",
+ "Dhokla, Thepla and Fafda are popular Gujarati foods.|Dhokla|Thepla|Fafda",
+ "Rann of Kutch, Somnath and Statue of Unity are famous.|Rann of Kutch|Somnath temple|Dholavira",
+ "Bandhani, embroidery and Patola weaving are traditional crafts.|Bandhani|Patola|Kutch embroidery",
+ "Famous for vibrant culture and the Rann of Kutch.|Statue of Unity|Gir National Park"],
+
+"Haryana": [
+ "Strong rural culture with folk music and dance.|Haryanvi folk dance|Haryanvi folk music|Saang",
+ "Surajkund Mela, Teej and Baisakhi are important celebrations.|Surajkund International Crafts Mela|Kurukshetra International Gita Mahotsav|Gugga",
+ "Bajra roti, kadhi and lassi are popular.|Lassi|Churma|Bajra",
+ "Kurukshetra and Sultanpur National Park are famous places.|Kurukshetra|Pinjore Gardens|Brahma Sarovar",
+ "Traditional pottery and embroidery are popular crafts.|Phulkari|Pottery",
+ "Known for agriculture, sports and a strong rural identity.|Pinjore Gardens|Sultanpur National Park|Surajkund"],
+
+"Himachal Pradesh": [
+ "Himachali traditions are closely tied to the Himalayan landscape.|Kinnaur|Lahaul and Spiti|Chamba",
+ "Kullu Dussehra is a famous festival.|Kullu Dussehra|Lavi Fair|Minjar Fair",
+ "Dham, Siddu and Chana Madra are popular dishes.|Siddu|Himachali cuisine|Chha gosht",
+ "Shimla, Manali and Spiti Valley attract visitors.|Shimla|Dharamshala|Kasol",
+ "Woollen shawls, Kangra painting and woodwork are famous.|Kangra painting|Chamba rumal|Kullu shawl",
+ "Known for mountains, valleys and hill stations.|Rohtang Pass|Spiti Valley|Kinner Kailash"],
+
+"Jharkhand": [
+ "A rich tribal heritage with unique music and traditions.|Santhal people|Mundari people|Ho people",
+ "Sarhul and Karma are important tribal festivals.|Sarhul|Karam festival|Tusu",
+ "Dhuska and Rugra are traditional foods.|Dhuska|Thekua",
+ "Netarhat and Hundru Falls are popular destinations.|Netarhat|Patratu Valley|Betla National Park",
+ "Sohrai and Khovar paintings are famous traditional arts.|Sohrai|Khovar|Paitkar painting",
+ "Known for forests, waterfalls and mineral resources.|Hundru Falls|Dassam Falls|Baidyanath Temple, Deoghar"],
+
+"Karnataka": [
+ "A rich heritage of music, dance and literature.|Yakshagana|Dollu Kunitha",
+ "Mysuru Dasara is one of the state's most famous celebrations.|Mysore Dasara|Mysuru Dasara|Dasara",
+ "Bisi Bele Bath, Mysore Pak and Dosa are popular.|Bisi bele bath|Mysore pak|Masala dosa",
+ "Mysore Palace, Hampi and Coorg are famous destinations.|Hampi|Coorg",
+ "Mysore paintings and sandalwood crafts are famous.|Mysore painting|Channapatna toys|Sandalwood",
+ "Combines historic heritage with modern technology.|Mysore Palace|Vidhana Soudha"],
+
+"Kerala": [
+ "Known for traditional dance, music and beautiful customs.|Theyyam|Mohiniyattam|Koodiyattam",
+ "Onam is the most famous festival of Kerala.|Thrissur Pooram|Onam|Vallam Kali",
+ "Appam, Puttu and Kerala Sadya are popular dishes.|Sadhya|Puttu|Appam",
+ "Munnar, Alleppey and Kochi are famous destinations.|Munnar|Fort Kochi|Varkala",
+ "Kathakali, murals and coir crafts are important art forms.|Kerala mural painting|Aranmula Kannadi",
+ "Famous for backwaters, greenery and Ayurveda.|Kerala backwaters|Alappuzha|Ayurveda"],
+
+"Madhya Pradesh": [
+ "A rich mixture of tribal and classical traditions.|Bhil people|Bhimbetka rock shelters|Gond people",
+ "Khajuraho Dance Festival and Simhastha are major events.|Simhastha|Bhagoria Festival|Mahakaleshwar Jyotirlinga",
+ "Poha, Bhutte Ka Kees and Dal Bafla are popular.|Poha|Dal bafla|Jalebi",
+ "Khajuraho, Sanchi and Pachmarhi are famous attractions.|Khajuraho|Orchha|Gwalior Fort",
+ "Gond painting is an important traditional art.|Gond painting|Bagh print|Chanderi sari",
+ "Known for wildlife, monuments and central Indian heritage.|Kanha National Park|Bandhavgarh National Park|Sanchi"],
+
+"Maharashtra": [
+ "A vibrant culture of music, theatre and traditional arts.|Lavani|Tamasha|Pandharpur",
+ "Ganesh Chaturthi is celebrated on a very large scale.|Ganesh Chaturthi|Gudi Padwa",
+ "Vada Pav, Misal Pav and Puran Poli are popular.|Vada pav|Misal pav|Puran poli",
+ "Mumbai, Ajanta-Ellora and Mahabaleshwar are famous.|Ajanta Caves|Ellora Caves|Mahabaleshwar",
+ "Warli painting is one of the famous traditional arts.|Warli painting|Paithani",
+ "Combines historic forts, cities, beaches and rich traditions.|Gateway of India|Raigad Fort|Shaniwar Wada"],
+
+"Manipur": [
+ "Known for graceful dance and traditional customs.|Manipuri dance|Meitei people|Ras Lila",
+ "Yaoshang is an important festival of Manipur.|Yaoshang|Lai Haraoba|Heikru Hidongba",
+ "Eromba and Chamthong are traditional dishes.|Singju|Eromba|Chak-hao",
+ "Loktak Lake and Imphal are popular destinations.|Loktak Lake|Kangla Fort|Ima Keithel",
+ "Manipuri handloom and traditional weaving are famous.|Phanek|Longpi|Kauna",
+ "Loktak Lake and its floating phumdis are unique in the world.|Keibul Lamjao National Park|Sangai|Phumdi"],
+
+"Meghalaya": [
+ "Diverse Khasi, Jaintia and Garo traditions.|Khasi people|Garo people|Jaintia people",
+ "Wangala and Shad Suk Mynsiem are important celebrations.|Wangala|Shad Suk Mynsiem|Behdienkhlam",
+ "Jadoh and Dohneiiong are traditional foods.|Jadoh|Dohneiiong|Tungrymbai",
+ "Shillong, Cherrapunji and Dawki are famous places.|Cherrapunji|Nohkalikai Falls|Mawsynram",
+ "Bamboo, cane crafts and Eri silk are popular traditional arts.|Eri silk|Khasi people",
+ "Famous for waterfalls, caves and living root bridges.|Living root bridge|Dawki|Mawlynnong"],
+
+"Mizoram": [
+ "Community traditions and colourful celebrations.|Cheraw dance|Mizo people",
+ "Chapchar Kut is a major cultural festival.|Chapchar Kut|Mim Kut",
+ "Bai and traditional rice-based dishes are popular.|Bai (Mizo dish)|Mizo cuisine",
+ "Aizawl and Reiek are popular destinations.|Aizawl|Champhai",
+ "Traditional weaving and bamboo crafts are important.|Puanchei|Mizo people",
+ "Known for hills, greenery and vibrant tribal culture.|Phawngpui National Park|Vantawng Falls|Reiek"],
+
+"Nagaland": [
+ "Many indigenous tribes with unique customs and traditions.|Konyak people|Angami Naga|Ao Naga",
+ "Hornbill Festival showcases the culture of Nagaland.|Hornbill Festival|Sekrenyi|Moatsu",
+ "Smoked pork and bamboo shoot dishes are popular.|Axone|Naga cuisine|Ghost pepper",
+ "Kohima and Dzukou Valley are famous destinations.|Kohima|Khonoma|Mokokchung",
+ "Traditional textiles, beads and bamboo crafts are popular.|Naga shawl|Longwa",
+ "Known for its colourful tribal heritage.|Dzükou Valley|Kohima War Cemetery|Doyang River"],
+
+"Odisha": [
+ "A rich tradition of classical dance, temples and crafts.|Odissi|Gotipua|Chhau dance",
+ "Rath Yatra of Puri is one of the most famous festivals.|Puri Rath Yatra|Konark Dance Festival|Raja Parba",
+ "Dalma, Pakhala Bhata and Chhena Poda are popular.|Pakhala|Chhena poda|Rasabali",
+ "Puri, Konark and Chilika Lake are famous attractions.|Konark Sun Temple|Lingaraja Temple|Puri",
+ "Pattachitra painting is a famous traditional art.|Pattachitra|Raghurajpur|Sambalpuri sari",
+ "Known for temples, classical dance and coastal heritage.|Chilika Lake|Bhitarkanika National Park|Jagannath Temple, Puri"],
+
+"Punjab": [
+ "Energetic music, dance and warm hospitality.|Giddha|Bhangra (dance)|Malwai Giddha",
+ "Baisakhi, Lohri and Hola Mohalla are important festivals.|Hola Mohalla|Lohri|Vaisakhi",
+ "Sarson da Saag, Makki di Roti and Amritsari Kulcha are popular.|Sarson da saag|Amritsari kulcha|Makki di roti",
+ "Golden Temple, Amritsar and Wagah Border are famous.|Golden Temple|Jallianwala Bagh|Anandpur Sahib",
+ "Phulkari embroidery is a famous traditional craft.|Phulkari|Punjabi juti",
+ "Famous for Bhangra, farming and rich food traditions.|Wagah–Attari border ceremony|Wagah|Harmandir Sahib"],
+
+"Rajasthan": [
+ "Folk music, dance and royal traditions.|Ghoomar|Kalbelia",
+ "Pushkar Camel Fair and Gangaur are famous celebrations.|Pushkar Camel Fair|Pushkar Fair|Gangaur",
+ "Dal Baati Churma, Gatte ki Sabzi and Ghevar are popular.|Dal baati churma|Ghevar|Gatte ki sabzi",
+ "Jaipur, Udaipur, Jaisalmer and Jodhpur are famous.|Jaisalmer Fort|City Palace, Udaipur|Hawa Mahal",
+ "Block printing, blue pottery and miniature painting are famous.|Sanganeri|Block printing|Blue pottery",
+ "Known for forts, palaces and desert landscapes.|Mehrangarh|Amber Fort|Thar Desert"],
+
+"Sikkim": [
+ "A mixture of Buddhist and local Himalayan traditions.|Lepcha people|Bhutia|Cham dance",
+ "Losar and Losoong are important festivals.|Losar|Losoong|Pang Lhabsol",
+ "Momos, Thukpa and Gundruk are popular foods.|Momo (food)|Thukpa|Gundruk",
+ "Gangtok, Tsomgo Lake and Nathula Pass are famous.|Gangtok|Nathu La|Tsomgo Lake",
+ "Traditional carpets, handicrafts and Buddhist art.|Thangka|Tibetan carpet",
+ "Known for Himalayan scenery and peaceful monasteries.|Kangchenjunga|Rumtek Monastery|Pelling"],
+
+"Tamil Nadu": [
+ "A rich classical tradition of music, dance and temples.|Bharatanatyam|Karagattam|Tamil people",
+ "Pongal is the most important traditional festival.|Thai Pongal|Jallikattu|Thaipusam",
+ "Idli, Dosa, Sambar and Pongal are popular dishes.|Idli|Dosa|Chettinad cuisine",
+ "Chennai, Madurai and Ooty are famous destinations.|Marina Beach|Meenakshi Temple|Ooty",
+ "Tanjore paintings and Kanchipuram silk are famous.|Thanjavur painting|Kanchipuram sari|Chola bronzes",
+ "Known for magnificent temples and classical culture.|Brihadisvara Temple, Thanjavur|Shore Temple|Kanyakumari"],
+
+"Telangana": [
+ "A unique cultural identity shaped by Telugu traditions.|Bonalu|Perini Sivatandavam|Bathukamma",
+ "Bathukamma is one of the state's most famous festivals.|Bathukamma|Bonalu",
+ "Hyderabadi Biryani and Sarva Pindi are popular.|Hyderabadi biryani|Haleem",
+ "Hyderabad, Charminar and Golconda Fort are famous.|Charminar|Golconda|Ramoji Film City",
+ "Pochampally Ikat weaving is a famous craft.|Pochampally Ikat|Bidriware|Nirmal painting",
+ "Combines historic heritage with modern Hyderabad.|Hussain Sagar|Thousand Pillar Temple|Warangal Fort"],
+
+"Tripura": [
+ "A mixture of tribal and Bengali cultural traditions.|Hojagiri|Tripuri people|Garia dance",
+ "Kharchi Puja is an important traditional festival.|Kharchi Puja|Garia puja|Ker puja",
+ "Mui Borok and bamboo shoot dishes are popular.|Mui Borok|Tripuri cuisine",
+ "Ujjayanta Palace and Neermahal are famous attractions.|Ujjayanta Palace|Unakoti|Neermahal",
+ "Bamboo and cane handicrafts and Riha weaving are important.|Riha|Tripuri people",
+ "Known for palaces, forests and tribal heritage.|Tripura Sundari Temple|Sepahijala Wildlife Sanctuary|Jampui Hills"],
+
+"Uttar Pradesh": [
+ "A rich cultural heritage connected with Indian history.|Kathak|Ramlila|Nautanki",
+ "Diwali, Holi and Kumbh Mela are important celebrations.|Kumbh Mela|Holi|Dev Deepawali",
+ "Awadhi Biryani, Kebabs and Petha are popular.|Galouti kebab|Petha|Tunday Kababi",
+ "Taj Mahal, Varanasi and Ayodhya are famous destinations.|Taj Mahal|Fatehpur Sikri|Ayodhya",
+ "Chikankari embroidery and Banarasi silk are famous.|Chikankari|Banarasi sari|Zardozi",
+ "Home to many important historical and religious sites.|Varanasi|Dashashwamedh Ghat|Sarnath"],
+
+"Uttarakhand": [
+ "Rich Himalayan traditions and folk culture.|Chholiya|Jagar|Kumaoni people",
+ "Nanda Devi Raj Jat and Harela are important festivals.|Harela|Nanda Devi Raj Jat|Ghee Sankranti",
+ "Aloo Ke Gutke and Kafuli are traditional dishes.|Kafuli|Bal mithai|Singori",
+ "Rishikesh, Nainital, Mussoorie and Kedarnath are famous.|Nainital|Mussoorie|Rishikesh",
+ "Aipan painting is a traditional art of Uttarakhand.|Aipan|Ringal",
+ "Known for Himalayan landscapes and pilgrimage sites.|Valley of Flowers National Park|Kedarnath Temple|Har Ki Pauri"],
+
+"West Bengal": [
+ "Known for literature, music, art and intellectual traditions.|Baul|Chhau dance|Santiniketan",
+ "Durga Puja is the most famous festival of the state.|Durga Puja|Kumortuli",
+ "Rasgulla, Mishti Doi and Machher Jhol are popular.|Rasgulla|Mishti doi",
+ "Kolkata, Darjeeling and the Sundarbans are famous.|Sundarbans|Darjeeling",
+ "Kantha embroidery and terracotta crafts are famous.|Kantha|Baluchari|Terracotta",
+ "Known for Durga Puja, literature and Bengali cuisine.|Victoria Memorial, Kolkata|Howrah Bridge"]
+
+};
+
+/* ---------- Reliable image lookup ---------- */
+/*
+   Images are searched on Wikimedia Commons using:
+   STATE + CATEGORY + SUBJECT.
+   This is more reliable than taking the first image from a
+   Wikipedia article, because article thumbnails can be portraits,
+   logos, maps, posters, or unrelated illustrations.
+*/
+const customImages = {
+    // Optional manual override:
+    // "Maharashtra": { 2: "https://example.com/food.jpg" }
+};
+
+const BAD_IMAGE = /map|flag|logo|emblem|seal|locator|symbol|coat[_\s-]?of[_\s-]?arms|icon|portrait|poster|stamp|signature|diagram|chart|screenshot|collage|infobox|\.svg$/i;
+const usedImages = new Set();
+
+function cleanSearchText(value) {
+    return value
+        .replace(/\([^)]*\)/g, "")
+        .replace(/[^\w\s-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+async function fetchCommonsImages(query, limit = 20, width = 900) {
+    try {
+        const url =
+            "https://commons.wikimedia.org/w/api.php?action=query" +
+            "&generator=search" +
+            "&gsrsearch=" + encodeURIComponent(query) +
+            "&gsrnamespace=6" +
+            "&gsrlimit=" + limit +
+            "&prop=imageinfo" +
+            "&iiprop=url%7Cmime%7Csize" +
+            "&iiurlwidth=" + width +
+            "&format=json&origin=*";
+
+        const response = await fetch(url);
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        const pages = data.query && data.query.pages;
+        if (!pages) return [];
+
+        return Object.values(pages)
+            .sort((a, b) => (a.index ?? 999) - (b.index ?? 999))
+            .map(page => {
+                const info = page.imageinfo && page.imageinfo[0];
+                if (!info) return null;
+
+                const name = page.title || "";
+                const mime = info.mime || "";
+                const source = info.thumburl || info.url || "";
+
+                if (!source || !mime.startsWith("image/")) return null;
+                if (BAD_IMAGE.test(name) || BAD_IMAGE.test(source)) return null;
+                if (/\.(gif|svg)$/i.test(source)) return null;
+
+                return {
+                    url: source,
+                    name: name.replace(/^File:/i, "")
+                };
+            })
+            .filter(Boolean);
+    } catch (error) {
+        console.warn("Wikimedia image search failed:", error);
+        return [];
+    }
+}
+
+function imageScore(item, subject, stateName, label) {
+    const filename = cleanSearchText(item.name).toLowerCase();
+    const subjectWords = cleanSearchText(subject).toLowerCase().split(" ").filter(w => w.length > 2);
+    const stateWords = cleanSearchText(stateName).toLowerCase().split(" ").filter(w => w.length > 2);
+    const labelWords = cleanSearchText(label).toLowerCase().split(" ").filter(w => w.length > 2);
+
+    let score = 0;
+
+    subjectWords.forEach(word => {
+        if (filename.includes(word)) score += 5;
+    });
+
+    stateWords.forEach(word => {
+        if (filename.includes(word)) score += 2;
+    });
+
+    labelWords.forEach(word => {
+        if (filename.includes(word)) score += 1;
+    });
+
+    // Prefer normal photographs over obvious graphics.
+    if (/\b(photo|photograph|view|festival|temple|food|dish|dance|painting|craft|palace|fort|beach|waterfall)\b/i.test(filename)) {
+        score += 2;
+    }
+
+    return score;
+}
+
+async function fetchBestImage(stateName, label, titles, size = 700) {
+    const safeTitles = titles
+        .map(cleanSearchText)
+        .filter(Boolean);
+
+    /*
+       Try several searches. The first search is the most specific:
+       subject + state + category.
+    */
+    const searches = [];
+
+    for (const subject of safeTitles.slice(0, 3)) {
+        searches.push(`${subject} ${stateName} ${label}`);
+        searches.push(`${subject} ${stateName}`);
+    }
+
+    // Generic fallback based on the category itself.
+    searches.push(`${stateName} ${label} India`);
+
+    const candidates = [];
+
+    for (const query of searches) {
+        const results = await fetchCommonsImages(query, 15, size);
+        for (const item of results) {
+            if (!usedImages.has(item.url)) {
+                const subject = safeTitles[0] || label;
+                candidates.push({
+                    ...item,
+                    score: imageScore(item, subject, stateName, label)
+                });
+            }
+        }
+
+        // Once we have strong results, don't keep making unnecessary requests.
+        if (candidates.some(item => item.score >= 8)) break;
+    }
+
+    candidates.sort((a, b) => b.score - a.score);
+
+    if (candidates.length) {
+        usedImages.add(candidates[0].url);
+        return candidates[0].url;
+    }
+
+    return null;
+}
+
+/* ---------- Build the six cards ---------- */
+
+const grid = document.getElementById("categoryGrid");
+const entries = DATA[state.name] || [];
+
+entries.forEach((entry, index) => {
+
+    const parts = entry.split("|");
+    const text = parts[0];
+    const titles = parts.slice(1);
+    const label = CATEGORIES[index];
+
+    const card = document.createElement("div");
+    card.className = "category-card";
+    card.innerHTML = `
+        <div class="category-image">
+            <img id="cat-img-${index}" src="${state.image}"
+                 alt="${state.name} - ${label}" loading="lazy"
+                 onerror="this.onerror=null;this.src='${state.image}';">
+            <span>${label}</span>
+        </div>
+        <div class="category-content">
+            <h3>${label}</h3>
+            <p>${text}</p>
+        </div>`;
+    grid.appendChild(card);
+
+    const imgEl = document.getElementById(`cat-img-${index}`);
+    const manual = customImages[state.name] && customImages[state.name][index];
+
+    if (manual) {
+        imgEl.src = manual;
+    } else {
+        fetchBestImage(state.name, label, titles, 800).then(url => {
+            if (url) {
+                imgEl.src = url;
+                imgEl.dataset.source = "Wikimedia Commons";
+            }
+        });
+    }
+});
+
+/* ---------- Hero image: the state's main landmark (Places card) ---------- */
+
+if (entries[3]) {
+    const placeTitles = entries[3].split("|").slice(1);
+    fetchBestImage(state.name, "Places", placeTitles, 1400).then(url => {
+        if (url) {
+            document.getElementById("stateHero").style.backgroundImage = `url("${url}")`;
+        }
+    });
+}
+
+</script>
+</body>
+</html>
